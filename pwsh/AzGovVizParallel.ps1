@@ -365,7 +365,7 @@ Param
     $Product = 'AzGovViz',
 
     [string]
-    $ProductVersion = '6.3.4',
+    $ProductVersion = '6.3.5',
 
     [string]
     $GithubRepository = 'aka.ms/AzGovViz',
@@ -12461,7 +12461,10 @@ function processStorageAccountAnalysis {
                     }
                     else {
                         try {
-                            $xmlSaProperties = [xml]([string]$saProperties -replace $saProperties.Substring(0, 3))
+                            # $xmlSaProperties = [xml]([string]$saProperties -replace $saProperties.Substring(0, 3)) # Leading character: ï»¿ (PS version <= 7.3.9)
+                            # $xmlSaProperties = [xml]([string]$saProperties -replace $saProperties.Substring(0, 1)) # Leading character: ﻿ or U+feff (PS version >= 7.4.0)
+                            $xmlSaProperties = [xml]($saProperties -replace ($saProperties -replace "<.*")) # Universal fix for all PS versions
+
                             if ($xmlSaProperties.StorageServiceProperties.StaticWebsite) {
                                 if ($xmlSaProperties.StorageServiceProperties.StaticWebsite.Enabled -eq $true) {
                                     $staticWebsitesState = $true
@@ -12494,7 +12497,10 @@ function processStorageAccountAnalysis {
                     }
 
                     if ($listContainersSuccess -eq $true) {
-                        $xmlListContainers = [xml]([string]$listContainers -replace $listContainers.Substring(0, 3))
+                        # $xmlListContainers = [xml]([string]$listContainers -replace $listContainers.Substring(0, 3)) # Leading character: ï»¿ (PS version <= 7.3.9)
+                        # $xmlListContainers = [xml]([string]$listContainers -replace $listContainers.Substring(0, 1)) # Leading character: ﻿ or U+feff (PS version >= 7.4.0)
+                        $xmlListContainers = [xml]($listContainers -replace ($listContainers -replace "<.*")) # Universal fix for all PS versions
+                        
                         $containersCount = $xmlListContainers.EnumerationResults.Containers.Container.Count
 
                         foreach ($container in $xmlListContainers.EnumerationResults.Containers.Container) {
